@@ -21,11 +21,11 @@ type Client struct {
 
 // AuthResponse -
 type AuthResponse struct {
-	TokenType    string `json:"token_type"`
-	AccessToken  string `json:"access_token"`
-	Expire       int    `json:"expires_at"`
-	Scope        []int  `json:"scope"`
-	RefreshToken string `json:"refresh_token"`
+	TokenType    string   `json:"token_type"`
+	AccessToken  string   `json:"access_token"`
+	Expire       int      `json:"expires_at"`
+	Scope        []string `json:"scope"`
+	RefreshToken string   `json:"refresh_token"`
 }
 
 // NewClient -
