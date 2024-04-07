@@ -109,7 +109,7 @@ func (c *Client) CreateProfile(profile *Profile) (*Profile, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/%s/email/profile", APIURL, APIVersion), strings.NewReader(string(data)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/%s/profile/email", APIURL, APIVersion), strings.NewReader(string(data)))
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (c *Client) CreateProfile(profile *Profile) (*Profile, error) {
 func (c *Client) GetProfile(id string) (*Profile, error) {
 	profile := &Profile{}
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/%s/email/profile/%s/setup", APIURL, APIVersion, id), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/%s/profile/email/%s/setup", APIURL, APIVersion, id), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (c *Client) GetProfile(id string) (*Profile, error) {
 
 // GetProfileByName retrieves a profile by name
 func (c *Client) GetProfileByName(name string) (*Profile, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/%s/email/profile", APIURL, APIVersion), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/%s/profile/email", APIURL, APIVersion), nil)
 	if err != nil {
 		return nil, err
 	}
