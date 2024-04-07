@@ -1,7 +1,7 @@
 TEST?=$$(go list ./... | grep -v 'vendor')
-HOSTNAME=smptd.dev
-NAMESPACE=sdk
-NAME=smptd
+HOSTNAME=smtpd.dev
+NAMESPACE=smtpd
+NAME=smtpd
 BINARY=terraform-provider-${NAME}
 VERSION=0.3
 OS_ARCH=darwin_amd64

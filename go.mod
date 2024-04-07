@@ -1,7 +1,10 @@
-module github.com/hashicorp/terraform-provider-smptd
+module github.com/helloallan/terraform-provider-smtpd
 
-go 1.13
+go 1.16
 
-require (
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.0.0-rc.2
+require github.com/hashicorp/terraform-plugin-sdk/v2 v2.6.1 // indirect
+
+replace (
+	github.com/helloallan/terraform-provider-smtpd/smtpd => ./terraform-provider-smtpd/smtpd
+	github.com/helloallan/terraform-provider-smtpd/sdk => ./terraform-provider-smtpd/sdk
 )

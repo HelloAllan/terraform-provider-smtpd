@@ -1,7 +1,6 @@
 package sdk
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -10,22 +9,14 @@ import (
 	"time"
 )
 
-// HostURL - Default SMTPD API URL
-const HostURL string = "https://api.smtpd.dev"
+// APIURL - Default SMTPD API URL
+const APIURL string = "https://api.smtpd.dev"
 const APIVersion string = "v1"
 
 // Client -
 type Client struct {
-	HostURL    string
 	HTTPClient *http.Client
-	APIVersion string
 	Token      string
-}
-
-// AuthStruct -
-type AuthStruct struct {
-	APIKey    string `json:"username"`
-	APISecret string `json:"password"`
 }
 
 // AuthResponse -
@@ -38,34 +29,22 @@ type AuthResponse struct {
 }
 
 // NewClient -
-func NewClient(host, key, secret *string) (*Client, error) {
+func NewClient(host, key, secret, version *string) (*Client, error) {
 	c := Client{
 		HTTPClient: &http.Client{Timeout: 10 * time.Second},
-		// Default SMPTD API URL
-		HostURL: HostURL,
-	}
-
-	if host != nil {
-		c.HostURL = *host
 	}
 
 	if (key != nil) && (secret != nil) {
-		// form request body
-		data, err := json.Marshal(AuthStruct{
-			APIKey:    *key,
-			APISecret: *secret,
-		})
-		if err != nil {
-			return nil, err
-		}
-
 		// authenticate
-		req, err := http.NewRequest("POST", fmt.Sprintf("%s/oauth/token?grant_type=password", c.HostURL), strings.NewReader(string(data)))
+		req, err := http.NewRequest("POST", fmt.Sprintf("%s/oauth/token?grant_type=password", APIURL), nil)
 		if err != nil {
 			return nil, err
 		}
 
-		body, err := c.doRequest(req)
+		body, err := c.doRequestBasicAuth(req, key, secret)
+		if err != nil {
+			return nil, err
+		}
 
 		// parse response body
 		ar := AuthResponse{}
@@ -80,8 +59,8 @@ func NewClient(host, key, secret *string) (*Client, error) {
 	return &c, nil
 }
 
-func (c *Client) doRequest(req *http.Request) ([]byte, error) {
-	req.Header.Set("Authorization", c.Token)
+func (c *Client) doRequestBasicAuth(req *http.Request, key, secret *string) ([]byte, error) {
+	req.SetBasicAuth(*key, *secret)
 
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -101,18 +80,40 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	return body, err
 }
 
+func (c *Client) doRequest(req *http.Request) ([]byte, error) {
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.StatusCode != http.StatusAccepted && res.StatusCode != http.StatusOK {
+		return nil, err
+	}
+
+	return body, err
+}
+
 // CreateProfile creates a profile
-func (c *Client) CreateProfile(ctx context.Context, profile *Profile) (*Profile, error) {
+func (c *Client) CreateProfile(profile *Profile) (*Profile, error) {
 	data, err := profile.ConvertToJSON()
-
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/%s/email/profile", c.HostURL, c.APIVersion), strings.NewReader(string(data)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/%s/email/profile", APIURL, APIVersion), strings.NewReader(string(data)))
 	if err != nil {
 		return nil, err
 	}
+
 	body, err := c.doRequest(req)
 	if err != nil {
 		return nil, err
@@ -122,15 +123,15 @@ func (c *Client) CreateProfile(ctx context.Context, profile *Profile) (*Profile,
 	return profile, nil
 }
 
-// GetProfile retrieves a server
-func (c *Client) GetProfile(ctx context.Context, id string) (*Profile, error) {
-
+// GetProfile retrieves a profile
+func (c *Client) GetProfile(id string) (*Profile, error) {
 	profile := &Profile{}
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/%s/email/profile/%s/setup", c.HostURL, c.APIVersion, id), strings.NewReader(string(data)))
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/%s/email/profile/%s/setup", APIURL, APIVersion, id), nil)
 	if err != nil {
 		return nil, err
 	}
+
 	body, err := c.doRequest(req)
 	if err != nil {
 		return nil, err
@@ -138,4 +139,34 @@ func (c *Client) GetProfile(ctx context.Context, id string) (*Profile, error) {
 	profile.LoadFromJSON([]byte(body))
 
 	return profile, nil
+}
+
+// GetProfileByName retrieves a profile by name
+func (c *Client) GetProfileByName(name string) (*Profile, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/%s/email/profile", APIURL, APIVersion), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	profiles := []Profile{}
+	err = json.Unmarshal(body, &profiles)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, profile := range profiles {
+		if profile.ProfileName == name {
+			return &profile, nil
+		}
+	}
+	return nil, fmt.Errorf("Profile %s not found", name)
+}
+
+// NoOp retrieves a profile
+func (c *Client) NoOp(id string) error {
+	return nil
 }

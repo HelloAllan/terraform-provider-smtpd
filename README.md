@@ -1,11 +1,11 @@
-# Terraform Provider smptd
+# Terraform Provider smtpd
 
 ## Build provider
 
 Run the following command to build the provider
 
 ```shell
-$ go build -o terraform-provider-smptd
+$ go build -o terraform-provider-smtpd
 ```
 
 ## Test sample configuration

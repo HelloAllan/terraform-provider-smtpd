@@ -1,6 +1,6 @@
 .DS_Store
 
-terraform-provider-smptd
+terraform-provider-smtpd
 bin
 
 # Local .terraform directories
@@ -37,3 +37,7 @@ override.tf.json
 .terraformrc
 terraform.rc
 terraform
+
+# Lock files
+*.terraform.lock*
+.idea
