@@ -8,28 +8,25 @@ import (
 
 const mxRecord = "MX"
 
-func flattenDNSRecords(dnsRecords *[]sdk.DNSRecord) []interface{} {
-	if dnsRecords != nil {
-		records := make([]interface{}, len(*dnsRecords), len(*dnsRecords))
+func flattenDNSRecords(dnsRecords *[]sdk.DNSRecord) map[string]map[string]string {
+	records := make(map[string]map[string]string)
 
-		for i, dnsRecord := range *dnsRecords {
-			record := make(map[string]interface{})
+	for _, dnsRecord := range *dnsRecords {
+		key := fmt.Sprintf("%s_%s", dnsRecord.DNSName, dnsRecord.DNSType)
 
-			record["name"] = dnsRecord.DNSName
-			record["type"] = dnsRecord.DNSType
-			record["validation_state"] = dnsRecord.ValidationState
-
-			if record["type"] == mxRecord {
-				record["value"] = fmt.Sprintf("10 %s", dnsRecord.DNSValue)
-			} else {
-				record["value"] = dnsRecord.DNSValue
-			}
-
-			records[i] = record
+		// Determine the appropriate record value format.
+		value := dnsRecord.DNSValue
+		if dnsRecord.DNSType == mxRecord {
+			value = fmt.Sprintf("10 %s", value)
 		}
 
-		return records
+		records[key] = map[string]string{
+			"name":             dnsRecord.DNSName,
+			"type":             dnsRecord.DNSType,
+			"value":            value,
+			"validation_state": dnsRecord.ValidationState,
+		}
 	}
 
-	return make([]interface{}, 0)
+	return records
 }
