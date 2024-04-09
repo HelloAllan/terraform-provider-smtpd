@@ -41,7 +41,7 @@ func dataSourceProfile() *schema.Resource {
 				Computed: true,
 			},
 			"dns_records": &schema.Schema{
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
